@@ -4,27 +4,30 @@
 using std::vector;
 using std::pair;
 
-class adjList{
-	private:
-	vector<vector<int> > mat;
-
-	public:
-	adjList(int nvert){
-		mat.resize(nvert,vector<int>());
-	}
-	read_edges(int nedges){
-		for (int i=0, i<nedges, i++){
-			int x,y;
-			std::cin>>x>>y;
-			mat[x-1].push_back(y-1);
-			mat[y-1].push_back(x-1);
-		}
-	}
-	
-	vector <int> & operator()(int vert){
-		//this may be wront but good idea
-	}
-
+struct vertex{
+    vertex (): id(-1),isVisited(false),con(-1){}
+    int id;
+    bool isVisited;
+    int con; 
+};
+class graph{
+    private:
+        vector<vector<vertex> > adj;
+        int n_vert;
+    public:
+        void readGraph(){
+            size_t n,m;
+            std::cin>>n>>m;
+            adj.resize(n,vector<vertex>());
+            for (int i=0;i<m;i++){
+                int x,y;
+                std::cin>>x>>y;
+                adj[x-1].push_back(vertex());
+                adj[x-1].back().id=y;
+                adj[y-1].push_back(vertex());
+                adj[y-1].back().id=x;
+            }
+        }
 };
 int reach(vector<vector<int> > &adj, int x, int y) {
   //write your code here
@@ -32,7 +35,9 @@ int reach(vector<vector<int> > &adj, int x, int y) {
 }
 
 int main() {
-  size_t n, m;
+    graph test;
+    test.readGraph();
+  /*size_t n, m;
   std::cin >> n >> m;
   vector<vector<int> > adj(n, vector<int>());
   for (size_t i = 0; i < m; i++) {
@@ -43,5 +48,5 @@ int main() {
   }
   int x, y;
   std::cin >> x >> y;
-  std::cout << reach(adj, x - 1, y - 1);
+  std::cout << reach(adj, x - 1, y - 1);*/
 }
