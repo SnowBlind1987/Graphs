@@ -1,8 +1,9 @@
 #include <iostream>
 #include <vector>
-
+#include <map>
 using std::vector;
 using std::pair;
+using std::map;
 
 struct vertex{
     vertex (): id(-1),isVisited(false),con(-1),nAdj(0){}
@@ -10,44 +11,53 @@ struct vertex{
     bool isVisited;
     int con;
     int nAdj;
+	vector<vertex*> adj;
 };
 class graph{
     private:
-        vector<vector<vertex> > adj;
+        typedef map<int,vertex*> vmap;
+		vmap vertices;
         int n_vert;
-        vertex& getVert(int id){
-            return adj[id-1][0];
+		int n_edges;
         }
     public:
-        void readGraph(){
-            size_t n,m;
-            std::cin>>n>>m;
-            adj.resize(n,vector<vertex>());
-            this->n_vert=n;
-            for (int i=0;i<m;i++){
-                int x,y;
-                std::cin>>x>>y;
-                adj[x-1].push_back(vertex());
-                adj[x-1].back().id=y;
-                adj[x-1].back().nAdj++;
-                adj[y-1].push_back(vertex());
-                adj[y-1].back().id=x;
-                adj[y-1].back().nAdj++;
-            }
-        }
+		void readGraph(){
+			vmap::iterator it;
+			vertex* tmp1;
+			vertex* tmp2;
+			std::cin>>this->n_vert>>this->n_edges;
+			for (int i=0;i<n_edges;i++){
+				int x,y;
+				std::cin>>x>>y;
+				it=vertices.find(x);
+				if (it==vertices.end()){
+					tmp1=new vertex;
+					vertices[x]=tmp1;
+					tmp1->id=x;
+					it=vertices.find(y);
+					if (it==vertices.end()){
+						tmp2=new vertex;
+						tmp2->id=y;
+						vertices[y]=tmp2;;
+						tmp1->adj.push_back(tmp2);
+							
+					}else{
+						tmp1->adj.push_back(it->second);
+					}
+					
+				}else{
+					tmp1=it->second;
+					it=vertices.find(y);
+					if (it==vertices.end()){
+						tmp2=new vertex;
+						tmp2->id=y;
+						vertices.insert(make_pair(y,tmp2));
+						tmp1->adj.push_back(tmp2);
+					}
+				}
+			}
+		}
 
-        void explore(int id){
-            vertex cur=this->getVert(id);
-            cur.isVisited=true;
-            int m=cur.nAdj;
-
-            for (int i=1;i<=m;i++){
-                vertex nxtVert=adj[id-1][i];
-                if (not nxtVert.isVisited){
-                    explore(nxtVert.id);
-                }
-            }
-        }
 };
 int reach(vector<vector<int> > &adj, int x, int y) {
   //write your code here
@@ -58,6 +68,7 @@ int main() {
     graph test;
     test.readGraph();
     test.explore(3);
+	
   /*size_t n, m;
   std::cin >> n >> m;
   vector<vector<int> > adj(n, vector<int>());
