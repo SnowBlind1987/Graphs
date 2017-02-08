@@ -19,7 +19,7 @@ class graph{
 		vmap vertices;
         int n_vert;
 		int n_edges;
-        }
+        
     public:
 		void readGraph(){
 			vmap::iterator it;
@@ -51,7 +51,10 @@ class graph{
 					if (it==vertices.end()){
 						tmp2=new vertex;
 						tmp2->id=y;
-						vertices.insert(make_pair(y,tmp2));
+						vertices[y]=tmp2;
+						tmp1->adj.push_back(tmp2);
+					}else{
+						tmp2=it->second;
 						tmp1->adj.push_back(tmp2);
 					}
 				}
@@ -67,7 +70,6 @@ int reach(vector<vector<int> > &adj, int x, int y) {
 int main() {
     graph test;
     test.readGraph();
-    test.explore(3);
 	
   /*size_t n, m;
   std::cin >> n >> m;
