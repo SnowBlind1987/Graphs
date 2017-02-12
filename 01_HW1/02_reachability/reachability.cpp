@@ -21,45 +21,66 @@ class graph{
 		int n_edges;
         
     public:
-		void readGraph(){
-			vmap::iterator it;
+		void readUndirectedGraph(){
+			vmap::iterator it1;
+            vmap::iterator it2;
 			vertex* tmp1;
 			vertex* tmp2;
 			std::cin>>this->n_vert>>this->n_edges;
+
+            for (int i=0;i<n_vert;i++){
+                tmp1=new vertex;
+                tmp1->id=i+1;
+                vertices[i+1]=tmp1;
+            }
 			for (int i=0;i<n_edges;i++){
 				int x,y;
 				std::cin>>x>>y;
-				it=vertices.find(x);
-				if (it==vertices.end()){
-					tmp1=new vertex;
-					vertices[x]=tmp1;
-					tmp1->id=x;
-					it=vertices.find(y);
-					if (it==vertices.end()){
-						tmp2=new vertex;
-						tmp2->id=y;
-						vertices[y]=tmp2;;
-						tmp1->adj.push_back(tmp2);
-							
-					}else{
-						tmp1->adj.push_back(it->second);
-					}
-					
-				}else{
-					tmp1=it->second;
-					it=vertices.find(y);
-					if (it==vertices.end()){
-						tmp2=new vertex;
-						tmp2->id=y;
-						vertices[y]=tmp2;
-						tmp1->adj.push_back(tmp2);
-					}else{
-						tmp2=it->second;
-						tmp1->adj.push_back(tmp2);
-					}
-				}
+                it1=vertices.find(x);
+                it2=vertices.find(y);
+
+                it1->second->adj.push_back(it2->second);
+                it1->second->nAdj++;
+                it2->second->adj.push_back(it1->second);
+                it2->second->nAdj++;
 			}
-		}
+        }
+
+    void showAll(){
+        vmap::iterator it=vertices.begin();
+        for (it;it!=vertices.end();it++){
+            std::cout<<it->first<<" "<<it->second->con<<std::endl;
+        }
+    }
+
+    void explore(vertex* vtx,int conVal){
+        vtx->isVisited=true;
+        vtx->con=conVal;
+        for (int i=0;i<vtx->nAdj;i++){
+            if (not vtx->adj[i]->isVisited){
+                explore(vtx->adj[i],conVal);
+            }
+        }
+    }
+
+    void DFS(){
+        //run explore on all vertices and assign connectivity values
+        vmap::iterator it=vertices.begin();
+        int cc=1;
+        for (it;it!=vertices.end();it++){
+            if (not it->second->isVisited){
+                explore(it->second,cc);
+                cc++;
+            }
+        }
+    }
+    
+    bool checkCon(int a, int b){
+        vmap::iterator it1=vertices.find(a);
+        vmap::iterator it2=vertices.find(b);
+
+        return (it1->second->con==it2->second->con);
+    }
 
 };
 int reach(vector<vector<int> > &adj, int x, int y) {
@@ -69,8 +90,12 @@ int reach(vector<vector<int> > &adj, int x, int y) {
 
 int main() {
     graph test;
-    test.readGraph();
-	
+    test.readUndirectedGraph();
+    test.DFS();
+    int a,b;
+    std::cin>>a>>b;
+    std::cout<<test.checkCon(a,b)<<std::endl;
+
   /*size_t n, m;
   std::cin >> n >> m;
   vector<vector<int> > adj(n, vector<int>());
