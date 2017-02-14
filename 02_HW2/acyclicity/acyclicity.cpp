@@ -36,18 +36,20 @@ class graph{
         	}
    		}
 
-		bool checkCycle(vertex* vtx,int conval){
+		bool isCyclic(vertex* vtx){
 			vtx->isVisited=true;
-			vtx->con=conval;
-
+			bool result;
+			if (vtx->nAjd==0) {result=false;}
 			for (int i=0;i<vtx->nAdj;i++){
-				if (vtx->adj[i]->isVisited) {return true;}
-				else{
-					return checkCycle(vtx->adj[i],conval);
+				if(vtx->isVisited){
+					result=true;
+				}else{
+					result=vtx->nAdj[i]
 				}
 			}
 			return false;
 		}
+
 		void resetAll(){
 			vmap::iterator it=vertices.begin();
 			for(it;it!=vertices.end();it++){
@@ -124,21 +126,7 @@ class graph{
         }
         this->n_connected_comp=cc-1;
     }
-   	bool checkCycle(){
-		vmap::iterator it=vertices.begin();
-		it=vertices.begin();
-		resetAll();
-		int cc=1;
-		for (it;it!=vertices.end();it++){
-			if (not it->second->isVisited){
-				bool cycle= checkCycle(it->second,cc);
-				resetAll();
-				if (cycle) {return cycle;}
-				cc++;
-			}
-		}
-		return false;
-	} 
+   	 
     bool checkCon(int a, int b){
         vmap::iterator it1=vertices.find(a);
         vmap::iterator it2=vertices.find(b);
@@ -155,5 +143,4 @@ int reach(vector<vector<int> > &adj, int x, int y) {
 int main() {
     graph DAG;
     DAG.readDirectedGraph();
-    std::cout<<DAG.checkCycle()<<std::endl;
 }
