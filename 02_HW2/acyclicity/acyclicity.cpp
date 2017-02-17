@@ -65,6 +65,13 @@ class graph{
 			this->n_edges=0;
 			this->n_connected_comp=0;	
 		}
+
+		graph(const graph& copy){
+			this->clock=copy.clock;
+			this->n_vert=copy.n_vert;
+			this->n_edges=copy.n_edges;
+			this->n_connected_comp=copy.n_connected_components;
+		}
 		void readUndirectedGraph(){
 			vmap::iterator it1;
             vmap::iterator it2;
