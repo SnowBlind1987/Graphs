@@ -13,6 +13,8 @@ struct vertex{
 	bool isSink;
 	bool isSource;
     int con;
+	int pre;
+	int post;
     int nAdj;
 	vector<vertex*> adj;
 };
@@ -20,11 +22,14 @@ class graph{
     private:
         typedef map<int,vertex*> vmap;
 		vmap vertices;
+		int clock;
         int n_vert;
 		int n_edges;
         int n_connected_comp; 
 
 		void explore(vertex* vtx,int conVal){
+			this->clock++;
+			vtx->pre=this->clock;	
         	vtx->isVisited=true;
         	vtx->con=conVal;
 			if (vtx->nAdj==0) {vtx->isSink=true;}
@@ -34,24 +39,18 @@ class graph{
         	        explore(vtx->adj[i],conVal);
         	    }
         	}
+			this->clock++;
+			vtx->post=clock;
    		}
 
-		bool isCyclic(vertex* vtx){
-			vtx->isVisited=true;
-			bool result;
-			if (vtx->nAjd==0) {result=false;}
+		void linearOrder(vertex* vtx){
 			for (int i=0;i<vtx->nAdj;i++){
-				if(vtx->isVisited){
-					result=true;
-				}else{
-					result=vtx->nAdj[i]
-				}
+				if (vtx->nAdj==0){vtx->isSink=true;}
 			}
-			return false;
 		}
-
 		void resetAll(){
 			vmap::iterator it=vertices.begin();
+			this->clock=0;
 			for(it;it!=vertices.end();it++){
 				it->second->isVisited=false;
 				it->second->con=-1;
@@ -59,6 +58,13 @@ class graph{
 		}
 
     public:
+
+		graph(){
+			this->clock=0;
+			this->n_vert=0;
+			this->n_edges=0;
+			this->n_connected_comp=0;	
+		}
 		void readUndirectedGraph(){
 			vmap::iterator it1;
             vmap::iterator it2;
@@ -109,7 +115,7 @@ class graph{
     void showAll(){
         vmap::iterator it=vertices.begin();
         for (it;it!=vertices.end();it++){
-            std::cout<<it->first<<" "<<it->second->con<<endl;
+            std::cout<<it->first<<" "<<it->second->pre<<" "<<it->second->post<<endl;
         }
     }
 
@@ -143,4 +149,6 @@ int reach(vector<vector<int> > &adj, int x, int y) {
 int main() {
     graph DAG;
     DAG.readDirectedGraph();
+	DAG.DFS();
+	DAG.showAll();
 }
