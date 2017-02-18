@@ -45,9 +45,11 @@ class graph{
    		}
 
 		void linearOrder(vertex* vtx){
+			
+			if (vtx->nAdj==0){vtx->isSink=true;}
 			for (int i=0;i<vtx->nAdj;i++){
-				if (vtx->nAdj==0){vtx->isSink=true;}
 			}
+
 		}
 		void resetAll(){
 			vmap::iterator it=vertices.begin();
@@ -92,6 +94,14 @@ class graph{
 				this->vertices[node_id]=vtx;
 				vtx=NULL;
         	}
+		}
+
+		~graph(){
+			vmap::iterator it=this->vertices.begin();
+			for(it;it!=this->vertices.end();it++){
+				delete it->second;
+				it->second=NULL;
+			}
 		}
 		void readUndirectedGraph(){
 			vmap::iterator it1;
@@ -178,7 +188,6 @@ int main() {
     graph DAG;
     DAG.readDirectedGraph();
 	DAG.DFS();
-	DAG.showAll();
 	graph cDAG(DAG);
-	cDAG.showAll();
+	
 }
