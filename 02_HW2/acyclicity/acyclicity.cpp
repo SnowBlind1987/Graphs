@@ -4,6 +4,7 @@
 using std::vector;
 using std::pair;
 using std::map;
+using std::cout;
 using std::endl;
 struct vertex{
     vertex (): id(-1),isVisited(false),isSink(false),isSource(false),
@@ -65,12 +66,32 @@ class graph{
 			this->n_edges=0;
 			this->n_connected_comp=0;	
 		}
-
+		//copy constructor
 		graph(const graph& copy){
 			this->clock=copy.clock;
 			this->n_vert=copy.n_vert;
 			this->n_edges=copy.n_edges;
-			this->n_connected_comp=copy.n_connected_components;
+			this->n_connected_comp=copy.n_connected_comp;
+			auto it=copy.vertices.begin();
+			int node_id;
+			for (it;it!=copy.vertices.end();it++){
+				node_id=it->first;
+            	vertex* vtx=new vertex;
+				vtx->id=node_id;
+				vtx->isVisited=it->second->isVisited;
+				vtx->isSink=it->second->isSink;
+				vtx->isSource=it->second->isSource;
+    			vtx->con=it->second->con;
+				vtx->pre=it->second->pre;
+				vtx->post=it->second->post;
+    			vtx->nAdj=it->second->nAdj;
+				if (vtx->nAdj!=0){
+					vtx->adj.resize(vtx->nAdj);
+					vtx->adj=it->second->adj;
+				}
+				this->vertices[node_id]=vtx;
+				vtx=NULL;
+        	}
 		}
 		void readUndirectedGraph(){
 			vmap::iterator it1;
@@ -158,4 +179,6 @@ int main() {
     DAG.readDirectedGraph();
 	DAG.DFS();
 	DAG.showAll();
+	graph cDAG(DAG);
+	cDAG.showAll();
 }
