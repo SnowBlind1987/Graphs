@@ -17,8 +17,8 @@ struct vertex{
 	int pre;
 	int post;
     int nAdj;
-	vector<vertex*> adj;
-	vector<vertex*> reverse;//only needed for directed graphs
+	map<int,vertex*> adj;
+	map<int,vertex*> reverse;//only needed for directed graphs
 };
 class graph{
     private:
@@ -46,10 +46,13 @@ class graph{
    		}
 
 		void linearOrder(vertex* vtx){
+            vmap::iterator=it;
 			if(vtx->nAdj==0) {
-				for (i=0;i<vtx->reverse.size();i++){
-					vertex* tmp=vtx->reverse[i];
-
+				for (int i=0;i<vtx->reverse.size();i++){
+					int id=vtx->reverse[i]->id;
+                    it=vertices.find(id);
+                    vertex* tmp=it->second;
+                    
 				}
 			}	
 		}
@@ -89,9 +92,7 @@ class graph{
 				vtx->pre=it->second->pre;
 				vtx->post=it->second->post;
     			vtx->nAdj=it->second->nAdj;
-				vtx->adj.resize(vtx->nAdj);
 				vtx->adj=it->second->adj;
-				vtx->reverse.resize(it->second->reverse.size());
 				vtx->reverse=it->second->reverse;
 				this->vertices[node_id]=vtx;
 				vtx=NULL;
@@ -123,9 +124,9 @@ class graph{
                 it1=vertices.find(x);
                 it2=vertices.find(y);
 
-                it1->second->adj.push_back(it2->second);
+                it1->second->adj[y]=it2->second;
                 it1->second->nAdj++;
-                it2->second->adj.push_back(it1->second);
+                it2->second->adj[x]=it1->second;
                 it2->second->nAdj++;
 			}
         }
@@ -147,9 +148,9 @@ class graph{
                 it1=vertices.find(x);
                 it2=vertices.find(y);
 
-                it1->second->adj.push_back(it2->second);
+                it1->second->adj[y]=it2->second;
                 it1->second->nAdj++;
-				it2->second->reverse.push_back(it1->second);
+				it2->second->reverse[x]=it1->second;
 			}
         }
 
