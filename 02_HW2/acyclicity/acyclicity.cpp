@@ -18,6 +18,7 @@ struct vertex{
 	int post;
     int nAdj;
 	vector<vertex*> adj;
+	vector<vertex*> reverse;//only needed for directed graphs
 };
 class graph{
     private:
@@ -45,11 +46,12 @@ class graph{
    		}
 
 		void linearOrder(vertex* vtx){
-			
-			if (vtx->nAdj==0){vtx->isSink=true;}
-			for (int i=0;i<vtx->nAdj;i++){
-			}
+			if(vtx->nAdj==0) {
+				for (i=0;i<vtx->reverse.size();i++){
+					vertex* tmp=vtx->reverse[i];
 
+				}
+			}	
 		}
 		void resetAll(){
 			vmap::iterator it=vertices.begin();
@@ -87,10 +89,10 @@ class graph{
 				vtx->pre=it->second->pre;
 				vtx->post=it->second->post;
     			vtx->nAdj=it->second->nAdj;
-				if (vtx->nAdj!=0){
-					vtx->adj.resize(vtx->nAdj);
-					vtx->adj=it->second->adj;
-				}
+				vtx->adj.resize(vtx->nAdj);
+				vtx->adj=it->second->adj;
+				vtx->reverse.resize(it->second->reverse.size());
+				vtx->reverse=it->second->reverse;
 				this->vertices[node_id]=vtx;
 				vtx=NULL;
         	}
@@ -147,6 +149,7 @@ class graph{
 
                 it1->second->adj.push_back(it2->second);
                 it1->second->nAdj++;
+				it2->second->reverse.push_back(it1->second);
 			}
         }
 
@@ -177,17 +180,15 @@ class graph{
 
         return (it1->second->con==it2->second->con);
     }
+
     int getNComponents(){return this->n_connected_comp;};
+
 };
-int reach(vector<vector<int> > &adj, int x, int y) {
-  //write your code here
-  return 0;
-}
 
 int main() {
     graph DAG;
     DAG.readDirectedGraph();
-	DAG.DFS();
-	graph cDAG(DAG);
+	//DAG.DFS();
+	graph cDAG= graph(DAG);
 	
 }
