@@ -18,8 +18,8 @@ struct vertex{
 	int post;
     int nAdj;
 	int nRev;
-	map<int,vertex*> adj;
-	map<int,vertex*> reverse;//only needed for directed graphs
+	vector<vertex*> adj;
+	vector<vertex*> reverse;//only needed for directed graphs
 };
 class graph{
     private:
@@ -33,16 +33,16 @@ class graph{
 
 
 		void explore(vertex* vtx,int conVal){
+            cout<<"Main vertex: "<<vtx->id<<" "<<vtx->isVisited<<endl;
 			this->clock++;
 			vtx->pre=this->clock;	
         	vtx->isVisited=true;
         	vtx->con=conVal;
 			if (vtx->nAdj==0) {vtx->isSink=true;}
-			auto it=vtx->adj.begin();
-        	for (it;it!=vtx->adj.end();it++){
+        	for (int i=0;i<vtx->nAdj;i++){
+                cout<<"Exploring: "<<it->second->id<<" "<<it->second->isVisited<<endl;
         	    if (not it->second->isVisited){
-					cout<<"About to Explore: "<<it->second->id<<endl;
-        	        explore(it->second,conVal);
+        	        explore(vtx->adj[i],conVal);
         	    }
         	}
 			this->clock++;
@@ -88,12 +88,19 @@ class graph{
     			vtx->con=it->second->con;
 				vtx->pre=it->second->pre;
 				vtx->post=it->second->post;
-    			vtx->nAdj=it->second->nAdj;
 				vtx->adj=it->second->adj;
-				vtx->reverse=it->second->reverse;
 				this->vertices[node_id]=vtx;
 				vtx=NULL;
         	}
+
+            it=copy.vertices.begin();
+            for (it;it!=copy.vertices.end();it++){
+                auto adj_it=it->second->adj.begin();
+                for (adj_it;adj_it!=it->second->adj.end();adj_it++){
+                    auto found=this->vertices.find(adj_it->second->id); 
+                    found->adj[adj->first]=found->second;
+                }
+            }
 		}
 
 		~graph(){
@@ -132,9 +139,9 @@ class graph{
                 it1=vertices.find(x);
                 it2=vertices.find(y);
 
-                it1->second->adj[y]=it2->second;
+                it1->second->adj.push_back(it2->second);
                 it1->second->nAdj++;
-                it2->second->adj[x]=it1->second;
+                it2->second->adj.push_back(it1->second);
                 it2->second->nAdj++;
 			}
         }
@@ -179,7 +186,6 @@ class graph{
         int cc=1;
         for (it;it!=vertices.end();it++){
 			
-			cout<<"Visited?: "<<it->second->isVisited<<endl;
             if (not it->second->isVisited){
                 explore(it->second,cc);
                 cc++;
@@ -227,7 +233,7 @@ class graph{
 		vmap::iterator it=vertices.find(id);
 		auto it2=it->second->adj.begin();
 		for (it2;it2!=it->second->adj.end();it2++){
-			cout<<it2->second->isVisited<<" ";
+			cout<<it2->second->id<<" ";
 		}
 		cout<<endl;
 	}
@@ -236,12 +242,15 @@ class graph{
 int main() {
     graph DAG;
     DAG.readDirectedGraph();
-	//DAG.DFS();
-	//DAG.showAll();
 	graph cDAG= graph(DAG);
+	DAG.DFS();
+	//DAG.showAll();
 	cDAG.resetAll();
+    cout<<"Pre Reverse Adjacency \n";
+    cDAG.showAdj(3);
 	cDAG.reverseGraph();	
-	cDAG.showAdj(1);	
-	//cDAG.DFS();
+    cout<<"Post Reverse Adjency\n";
+	cDAG.showAdj(3);	
+	cDAG.DFS();
 	cDAG.showAll();
 }
