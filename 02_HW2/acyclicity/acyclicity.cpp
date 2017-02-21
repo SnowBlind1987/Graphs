@@ -8,7 +8,7 @@ using std::cout;
 using std::endl;
 struct vertex{
     vertex (): id(-1),isVisited(false),isSink(false),isSource(false),
-	con(-1),nAdj(0){}
+	con(-1),nAdj(0), nRev(0){}
     int id;
     bool isVisited;
 	bool isSink;
@@ -17,6 +17,7 @@ struct vertex{
 	int pre;
 	int post;
     int nAdj;
+	int nRev;
 	map<int,vertex*> adj;
 	map<int,vertex*> reverse;//only needed for directed graphs
 };
@@ -28,6 +29,8 @@ class graph{
         int n_vert;
 		int n_edges;
         int n_connected_comp; 
+		bool isDirected;
+
 
 		void explore(vertex* vtx,int conVal){
 			this->clock++;
@@ -35,17 +38,17 @@ class graph{
         	vtx->isVisited=true;
         	vtx->con=conVal;
 			if (vtx->nAdj==0) {vtx->isSink=true;}
-
-        	for (int i=0;i<vtx->nAdj;i++){
-        	    if (not vtx->adj[i]->isVisited){
-        	        explore(vtx->adj[i],conVal);
+			auto it=vtx->adj.begin();
+        	for (it;it!=vtx->adj.end();it++){
+        	    if (not it->second->isVisited){
+					cout<<"About to Explore: "<<it->second->id<<endl;
+        	        explore(it->second,conVal);
         	    }
         	}
 			this->clock++;
 			vtx->post=clock;
    		}
-
-		void linearOrder(vertex* vtx){
+		/*void linearOrder(vertex* vtx){
             vmap::iterator=it;
 			if(vtx->nAdj==0) {
 				for (int i=0;i<vtx->reverse.size();i++){
@@ -55,15 +58,8 @@ class graph{
                     
 				}
 			}	
-		}
-		void resetAll(){
-			vmap::iterator it=vertices.begin();
-			this->clock=0;
-			for(it;it!=vertices.end();it++){
-				it->second->isVisited=false;
-				it->second->con=-1;
-			}
-		}
+		}*/
+		
 
     public:
 
@@ -79,6 +75,7 @@ class graph{
 			this->n_vert=copy.n_vert;
 			this->n_edges=copy.n_edges;
 			this->n_connected_comp=copy.n_connected_comp;
+			this->isDirected=copy.isDirected;
 			auto it=copy.vertices.begin();
 			int node_id;
 			for (it;it!=copy.vertices.end();it++){
@@ -106,11 +103,22 @@ class graph{
 				it->second=NULL;
 			}
 		}
+		void resetAll(){
+			vmap::iterator it=this->vertices.begin();
+			this->clock=0;
+			for(it;it!=this->vertices.end();it++){
+				it->second->isVisited=false;
+				it->second->con=-1;
+				it->second->pre=0;
+				it->second->post=0;
+			}
+		}	
 		void readUndirectedGraph(){
 			vmap::iterator it1;
             vmap::iterator it2;
 			vertex* tmp1;
 			vertex* tmp2;
+			this->isDirected=false;
 			std::cin>>this->n_vert>>this->n_edges;
 
             for (int i=0;i<n_vert;i++){
@@ -135,6 +143,7 @@ class graph{
             vmap::iterator it2;
 			vertex* tmp1;
 			vertex* tmp2;
+			this->isDirected=true;
 			std::cin>>this->n_vert>>this->n_edges;
 
             for (int i=0;i<n_vert;i++){
@@ -151,6 +160,7 @@ class graph{
                 it1->second->adj[y]=it2->second;
                 it1->second->nAdj++;
 				it2->second->reverse[x]=it1->second;
+				it2->second->nRev++;
 			}
         }
 
@@ -165,8 +175,11 @@ class graph{
     void DFS(){
         //run explore on all vertices and assign connectivity values
         vmap::iterator it=vertices.begin();
+		this->resetAll();
         int cc=1;
         for (it;it!=vertices.end();it++){
+			
+			cout<<"Visited?: "<<it->second->isVisited<<endl;
             if (not it->second->isVisited){
                 explore(it->second,cc);
                 cc++;
@@ -183,13 +196,52 @@ class graph{
     }
 
     int getNComponents(){return this->n_connected_comp;};
+	//reverse the adjacency list for directed graphs only
+	//doesn't make sense for undirected graphs
+	void reverseGraph(){
+		if (not isDirected){return;}
+		map<int,vertex*> tmp;
+		vmap::iterator it=this->vertices.begin();
+		for (it;it!=this->vertices.end();it++){
+			tmp=it->second->adj;
+			it->second->adj.clear();
+			it->second->adj=it->second->reverse;
+			it->second->reverse.clear();
+			it->second->reverse=tmp;
+			tmp.clear();
+			int swp=it->second->nAdj;
+			it->second->nAdj=it->second->nRev;
+			it->second->nRev=swp;
+		}
+	}
 
+	void showReverse(int id){
+		vmap::iterator it=vertices.find(id);
+		auto it2=it->second->reverse.begin();
+		for (it2;it2!=it->second->reverse.end();it2++){
+			cout<<it2->first<<" ";
+		}
+		cout<<endl;
+	}
+	void showAdj(int id){
+		vmap::iterator it=vertices.find(id);
+		auto it2=it->second->adj.begin();
+		for (it2;it2!=it->second->adj.end();it2++){
+			cout<<it2->second->isVisited<<" ";
+		}
+		cout<<endl;
+	}
 };
 
 int main() {
     graph DAG;
     DAG.readDirectedGraph();
 	//DAG.DFS();
+	//DAG.showAll();
 	graph cDAG= graph(DAG);
-	
+	cDAG.resetAll();
+	cDAG.reverseGraph();	
+	cDAG.showAdj(1);	
+	//cDAG.DFS();
+	cDAG.showAll();
 }
