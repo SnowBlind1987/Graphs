@@ -18,8 +18,8 @@ struct vertex{
 	int post;
     int nAdj;
 	int nRev;
-	vector<vertex*> adj;
-	vector<vertex*> reverse;//only needed for directed graphs
+	vector<int> adj;
+	vector<int> reverse;//only needed for directed graphs
 };
 class graph{
     private:
@@ -33,16 +33,15 @@ class graph{
 
 
 		void explore(vertex* vtx,int conVal){
-            cout<<"Main vertex: "<<vtx->id<<" "<<vtx->isVisited<<endl;
 			this->clock++;
 			vtx->pre=this->clock;	
         	vtx->isVisited=true;
         	vtx->con=conVal;
 			if (vtx->nAdj==0) {vtx->isSink=true;}
         	for (int i=0;i<vtx->nAdj;i++){
-                cout<<"Exploring: "<<it->second->id<<" "<<it->second->isVisited<<endl;
-        	    if (not it->second->isVisited){
-        	        explore(vtx->adj[i],conVal);
+				auto adj_it=this->vertices.find(vtx->adj[i]);
+        	    if (not adj_it->second->isVisited){
+        	        explore(adj_it->second,conVal);
         	    }
         	}
 			this->clock++;
@@ -88,19 +87,16 @@ class graph{
     			vtx->con=it->second->con;
 				vtx->pre=it->second->pre;
 				vtx->post=it->second->post;
+				vtx->nAdj=it->second->nAdj;
+				vtx->adj.resize(vtx->nAdj);
 				vtx->adj=it->second->adj;
+				vtx->nRev=it->second->nRev;
+				vtx->reverse.resize(vtx->nRev);
+				vtx->reverse=it->second->reverse;
 				this->vertices[node_id]=vtx;
 				vtx=NULL;
         	}
 
-            it=copy.vertices.begin();
-            for (it;it!=copy.vertices.end();it++){
-                auto adj_it=it->second->adj.begin();
-                for (adj_it;adj_it!=it->second->adj.end();adj_it++){
-                    auto found=this->vertices.find(adj_it->second->id); 
-                    found->adj[adj->first]=found->second;
-                }
-            }
 		}
 
 		~graph(){
@@ -139,9 +135,9 @@ class graph{
                 it1=vertices.find(x);
                 it2=vertices.find(y);
 
-                it1->second->adj.push_back(it2->second);
+                it1->second->adj.push_back(y);
                 it1->second->nAdj++;
-                it2->second->adj.push_back(it1->second);
+                it2->second->adj.push_back(x);
                 it2->second->nAdj++;
 			}
         }
@@ -164,9 +160,9 @@ class graph{
                 it1=vertices.find(x);
                 it2=vertices.find(y);
 
-                it1->second->adj[y]=it2->second;
+                it1->second->adj.push_back(y);
                 it1->second->nAdj++;
-				it2->second->reverse[x]=it1->second;
+				it2->second->reverse.push_back(x);
 				it2->second->nRev++;
 			}
         }
@@ -206,51 +202,43 @@ class graph{
 	//doesn't make sense for undirected graphs
 	void reverseGraph(){
 		if (not isDirected){return;}
-		map<int,vertex*> tmp;
+		vector<int> tmp;
 		vmap::iterator it=this->vertices.begin();
 		for (it;it!=this->vertices.end();it++){
+			tmp.resize(it->second->nAdj);
 			tmp=it->second->adj;
 			it->second->adj.clear();
+			it->second->adj.resize(it->second->nRev);
 			it->second->adj=it->second->reverse;
 			it->second->reverse.clear();
+			it->second->reverse.resize(it->second->nAdj);
 			it->second->reverse=tmp;
 			tmp.clear();
 			int swp=it->second->nAdj;
 			it->second->nAdj=it->second->nRev;
 			it->second->nRev=swp;
 		}
+
+		
 	}
 
-	void showReverse(int id){
-		vmap::iterator it=vertices.find(id);
-		auto it2=it->second->reverse.begin();
-		for (it2;it2!=it->second->reverse.end();it2++){
-			cout<<it2->first<<" ";
-		}
-		cout<<endl;
-	}
 	void showAdj(int id){
-		vmap::iterator it=vertices.find(id);
-		auto it2=it->second->adj.begin();
-		for (it2;it2!=it->second->adj.end();it2++){
-			cout<<it2->second->id<<" ";
+		auto it=this->vertices.find(id);
+		cout<<"Number of of adjacents: "<<it->second->nAdj<<endl;
+		for (int i=0;i<it->second->nAdj;i++){
+			cout<<it->second->adj[i]<<" ";
 		}
 		cout<<endl;
-	}
+	}	
 };
 
 int main() {
     graph DAG;
     DAG.readDirectedGraph();
-	graph cDAG= graph(DAG);
 	DAG.DFS();
-	//DAG.showAll();
-	cDAG.resetAll();
-    cout<<"Pre Reverse Adjacency \n";
-    cDAG.showAdj(3);
-	cDAG.reverseGraph();	
-    cout<<"Post Reverse Adjency\n";
-	cDAG.showAdj(3);	
+	DAG.showAll();
+	graph cDAG= graph(DAG);
+	cDAG.reverseGraph();
 	cDAG.DFS();
 	cDAG.showAll();
 }
