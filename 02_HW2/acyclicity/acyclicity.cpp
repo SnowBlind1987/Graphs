@@ -8,7 +8,7 @@ using std::cout;
 using std::endl;
 struct vertex{
     vertex (): id(-1),isVisited(false),isSink(false),isSource(false),
-	con(-1),nAdj(0), nRev(0),isInComp(false);{}
+	con(-1),nAdj(0), nRev(0),isInComp(false){}
     int id;
     bool isVisited;
 	bool isSink;
@@ -27,7 +27,7 @@ class graph{
         typedef map<int,vertex*> vmap;
 		vmap vertices;
 		vmap post_order;
-		map<int,vector<int>> connected_comp;
+		map<int,int> connected_comp;
 		int clock;
         int n_vert;
 		int n_edges;
@@ -51,9 +51,9 @@ class graph{
 			vtx->post=clock;
    		}
 		void exploreReverse(vertex* vtx){
+            vtx->isVisited=true;
 			this->clock++;
 			vtx->pre=this->clock;
-			vtx->isVisited=true;
 			for (int i=0;i<vtx->nRev;i++){
 				auto rev_it=this->vertices.find(vtx->reverse[i]);
 				if (not rev_it->second->isVisited){
@@ -64,10 +64,10 @@ class graph{
 			vtx->post=this->clock;
 		}
 		
-		void exploreSort(vertex* vtx,int con_number){
+		void exploreSort(vertex* vtx, int con_number){
 			vtx->isVisited=true;
 			vtx->isInComp=true;
-			connected_comp
+			connected_comp[vtx->id]=con_number;
 			for (int i=0;i<vtx->nAdj;i++){
 				auto adj_it=this->vertices.find(vtx->adj[i]);
 				if (not adj_it->second->isVisited){
@@ -112,7 +112,7 @@ class graph{
 			this->nccs=copy.nccs;
 
 			for (it;it!=copy.vertices.end();it++){
-				node_id=it->first;
+				int node_id=it->first;
             	vertex* vtx=new vertex;
 				vtx->id=node_id;
 				vtx->isVisited=it->second->isVisited;
@@ -204,7 +204,7 @@ class graph{
 
     void showAll(){
         vmap::iterator it=vertices.begin();
-        for (it;it!=vertices.en(d);it++){
+        for (it;it!=vertices.end();it++){
             std::cout<<it->first<<" "<<it->second->pre<<" "<<it->second->post<<endl;
         }
     }
@@ -235,13 +235,18 @@ class graph{
 		this->setPostOrder();
 	}
    	
-	void calcConnectedComponent(){
+	void calcConnectedComponents(){
 		this->dfsReverse();
 		vmap::reverse_iterator it=post_order.rbegin();
 		this->resetVisited();
-		for (it;it!=rend();it++){
-			exploreSort(it->second);
+        int comp_n=1;
+		for (it;it!=post_order.rend();it++){
+            if (not it->second->isInComp){
+			    exploreSort(it->second,comp_n);
+                comp_n++;
+            }
 		}
+        this->nccs=comp_n-1;
 	}
     bool checkCon(int a, int b){
         vmap::iterator it1=vertices.find(a);
@@ -275,17 +280,20 @@ class graph{
 		
 	}
 
-	void showPost(){
-		vmap::reverse_iterator it=post_order.rbegin();
-		for (it;it!=post_order.rend();it++){
-			cout<<it->second->id<<endl;
-		}
-	}
+    bool hasCycle(){
+        if (this->n_vert==this->nccs){
+            return false;
+        }else{
+            return true;
+        }
+    }
 };
+
 
 int main() {
     graph DAG;
     DAG.readDirectedGraph();
-	DAG.dfsReverse();
-	DAG.showAll();
+    //DAG.dfsReverse();
+    DAG.calcConnectedComponents();
+    cout<<DAG.hasCycle()<<endl;
 }
