@@ -38,6 +38,7 @@ class graph{
         int n_connected_comp; 
 		bool isDirected;
 		int nccs; //number of connected components
+		int inf;
 
 		void explore(vertex* vtx,int conVal){
 			this->clock++;
@@ -179,6 +180,7 @@ class graph{
                 it2->second->adj.push_back(x);
                 it2->second->nAdj++;
 			}
+			this->inf=n_vert+1;
         }
 		void readDirectedGraph(){
 			vmap::iterator it1;
@@ -204,6 +206,7 @@ class graph{
 				it2->second->reverse.push_back(x);
 				it2->second->nRev++;
 			}
+			this->inf=this->n_vert+1;
         }
 
     void showAll(){
@@ -230,9 +233,7 @@ class graph{
         this->setPostOrder();
     }
 
-	void BFS(vertex* S){
-		queue<int> vQ;
-	}
+	
 	void dfsReverse(){
 		vmap::iterator it=vertices.begin();
 		this->resetAll();
@@ -243,7 +244,43 @@ class graph{
         }
 		this->setPostOrder();
 	}
-   	
+
+   	void BFS(vertex* S){
+		queue<vertex* > vQ;
+		vmap::iterator it=vertices.begin();
+		for (it;it!=vertices.end();it++){
+			it->second->dist=this->inf;
+			it->second->prev=NULL;
+		}
+		S->dist=0;
+		S->prev=NULL;
+		vQ.push(S);
+		while( not vQ.empty()){
+			vertex* cur=vQ.front();
+			vQ.pop();
+			for (int i=0;i<cur->nAdj;i++){
+				int adjId=cur->adj[i];
+				auto adj_it=vertices.find(adjId);
+				if (adj_it->second->dist==this->inf){
+					vQ.push(adj_it->second);
+					adj_it->second->dist=cur->dist+1;
+					adj_it->second->prev=cur;
+				}
+			}
+		}
+	}
+
+	int getDist(int source, int dest){
+		vmap::iterator it=vertices.find(source);
+		this->BFS(it->second);
+		it=vertices.find(dest);
+		if (it->second->dist!=this->inf){
+			return it->second->dist;
+		}else{
+			return -1;
+		}
+	}
+
 	void calcConnectedComponents(){
 		this->dfsReverse();
 		vmap::reverse_iterator it=post_order.rbegin();
@@ -312,8 +349,10 @@ class graph{
 
 
 int main() {
-    graph DAG;
-    DAG.readDirectedGraph();
-    DAG.DFS();
-    DAG.showPostInReverse();
+    graph myGraph;
+    myGraph.readUndirectedGraph();
+	int dist, source;
+	std::cin>>dist>>source;
+	std::cout<<myGraph.getDist(dist,source);
+
 }
