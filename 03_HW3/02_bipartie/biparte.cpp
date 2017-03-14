@@ -10,7 +10,7 @@ using std::endl;
 using std::queue;
 struct vertex{
     vertex (): id(-1),isVisited(false),isSink(false),isSource(false),
-	con(-1),nAdj(0), nRev(0),isInComp(false),prev(NULL),dist(0),color(0){}
+	con(-1),nAdj(0), nRev(0),isInComp(false),prev(NULL),dist(0),color(-1){}
     int id;
     bool isVisited;//bool for visited
 	bool isSink;//bool for sink
@@ -252,6 +252,7 @@ class graph{
 		for (it;it!=vertices.end();it++){
 			it->second->dist=this->inf;
 			it->second->prev=NULL;
+			it->second->color=-1;
 		}
 		S->color=0;
 		S->dist=0;
@@ -267,6 +268,7 @@ class graph{
 				int adjId=cur->adj[i];
 				auto adj_it=vertices.find(adjId);
 				if (adj_it->second->dist==this->inf){
+					adj_it->second->isVisited=true;
 					adj_it->second->color=counter%2;//either odd or even
 					vQ.push(adj_it->second);
 					adj_it->second->dist=cur->dist+1;
@@ -277,13 +279,17 @@ class graph{
 	}
 
 	bool biparteCheck(){
+		if (this->n_vert==1 or this->n_vert==0){
+			return false;
+		}
 		vmap::iterator it=vertices.begin();	
 		this->BFS(it->second);
 		for (it;it!=vertices.end();it++){
 			int cur_color=it->second->color;
+			if (it->second->dist==this->inf){return false;}
 			for (int i=0;i<it->second->nAdj;i++){
 				auto adj_it=vertices.find(it->second->adj[i]);
-				if (cur_color==adj_it->second->color){
+				if (adj_it->second->dist!=inf and cur_color==adj_it->second->color){
 					return false;
 				}
 			}
@@ -372,8 +378,6 @@ class graph{
 int main() {
     graph myGraph;
     myGraph.readUndirectedGraph();
-	int dist, source;
-	std::cin>>dist>>source;
 	std::cout<<myGraph.biparteCheck()<<std::endl;
 
 }
