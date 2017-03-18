@@ -246,14 +246,13 @@ class graph{
 		this->setPostOrder();
 	}
 
-   	void BFS(vertex* S){
+   	bool BFS(vertex* S){
 		queue<vertex* > vQ;
 		vmap::iterator it=vertices.begin();
 		for (it;it!=vertices.end();it++){
 			it->second->dist=this->inf;
 			it->second->prev=NULL;
-			it->second->color=-1;
-		}
+		}	
 		S->color=0;
 		S->dist=0;
 		S->prev=NULL;
@@ -265,8 +264,12 @@ class graph{
 			vQ.pop();
 			counter++;
 			for (int i=0;i<cur->nAdj;i++){
+				
 				int adjId=cur->adj[i];
 				auto adj_it=vertices.find(adjId);
+				if (cur->color==adj_it->second->color){
+					return false;
+				}
 				if (adj_it->second->dist==this->inf){
 					adj_it->second->isVisited=true;
 					adj_it->second->color=counter%2;//either odd or even
@@ -276,25 +279,21 @@ class graph{
 				}
 			}
 		}
+		return true;
 	}
 
 	bool biparteCheck(){
-		if (this->n_vert==1 or this->n_vert==0){
-			return false;
-		}
-		vmap::iterator it=vertices.begin();	
-		this->BFS(it->second);
+		bool result=true;
+		auto it=vertices.begin();
 		for (it;it!=vertices.end();it++){
-			int cur_color=it->second->color;
-			if (it->second->dist==this->inf){return false;}
-			for (int i=0;i<it->second->nAdj;i++){
-				auto adj_it=vertices.find(it->second->adj[i]);
-				if (adj_it->second->dist!=inf and cur_color==adj_it->second->color){
+			if (not it->second->isVisited){
+				result=this->BFS(it->second);
+				if (result==false){
 					return false;
 				}
 			}
-		}
-		return true;
+		}	
+	return true;
 	}
 
 	int getDist(int source, int dest){
@@ -379,5 +378,6 @@ int main() {
     graph myGraph;
     myGraph.readUndirectedGraph();
 	std::cout<<myGraph.biparteCheck()<<std::endl;
+//	myGraph.showAll();
 
 }
