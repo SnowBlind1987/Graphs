@@ -40,6 +40,7 @@ class graph{
 		bool isDirected;
 		int nccs; //number of connected components
 		int inf;
+		bool isBipartite;
 
 		void explore(vertex* vtx,int conVal){
 			this->clock++;
@@ -106,6 +107,7 @@ class graph{
 			this->n_edges=0;
 			this->n_connected_comp=0;	
 			this->nccs=0;
+			this->isBipartite=true;
 		}
 		//copy constructor
 		graph(const graph& copy){
@@ -246,7 +248,7 @@ class graph{
 		this->setPostOrder();
 	}
 
-   	bool BFS(vertex* S){
+   	void BFS(vertex* S){
 		queue<vertex* > vQ;
 		vmap::iterator it=vertices.begin();
 		for (it;it!=vertices.end();it++){
@@ -256,6 +258,7 @@ class graph{
 		S->color=0;
 		S->dist=0;
 		S->prev=NULL;
+		S->isVisited=true;
 		vQ.push(S);
 		int counter=0;
 
@@ -267,11 +270,11 @@ class graph{
 				
 				int adjId=cur->adj[i];
 				auto adj_it=vertices.find(adjId);
-				if (cur->color==adj_it->second->color){
-					return false;
+				adj_it->second->isVisited=true;
+				if (adj_it->second->isVisited and cur->color==adj_it->second->color){
+					this->isBipartite=false;;
 				}
 				if (adj_it->second->dist==this->inf){
-					adj_it->second->isVisited=true;
 					adj_it->second->color=counter%2;//either odd or even
 					vQ.push(adj_it->second);
 					adj_it->second->dist=cur->dist+1;
@@ -279,21 +282,18 @@ class graph{
 				}
 			}
 		}
-		return true;
 	}
 
 	bool biparteCheck(){
-		bool result=true;
+		bool result;
 		auto it=vertices.begin();
 		for (it;it!=vertices.end();it++){
 			if (not it->second->isVisited){
-				result=this->BFS(it->second);
-				if (result==false){
-					return false;
-				}
+				this->BFS(it->second);
 			}
-		}	
-	return true;
+		}
+		
+		return this->isBipartite;
 	}
 
 	int getDist(int source, int dest){
