@@ -2,13 +2,16 @@
 #include <vector>
 #include <map>
 #include <queue> 
+#include <algorithm>
+#include <unordered_map>
 using std::vector;
 using std::pair;
 using std::map;
 using std::cout;
 using std::endl;
 using std::queue;
-
+using std::unordered_map;
+using std::swap;
 struct vertex{
     vertex (): id(-1),isVisited(false),isSink(false),isSource(false),
 	con(-1),nAdj(0), nRev(0),isInComp(false),prev(NULL),dist(0){}
@@ -27,6 +30,137 @@ struct vertex{
 	vector<int> adj;//vector for all adjacent vertices
 	vector<int> weight;//if a weighted graph need weights for each adj
 	vector<int> reverse;//only needed for directed graphs
+};
+
+class PriorityQueue{
+	private:
+	int size;
+    int max_size;
+	vector<vertex* > Hvect;
+	unordered_map<vertex*,int> vert2ind;//map of vertices to their location in H
+
+	int Paren(int i){
+		int div=(i-1)/2;
+		if (i==0) {
+			return -1;
+		}else{
+			return div;
+		}
+	}
+	int LC(int i){
+		return 2*i+1;
+	}
+	int RC(int i){
+		return 2*i+2;
+	}
+
+	void siftUp(int i){
+		if (this->size==0)return;
+		auto it=vert2ind.begin();
+		while (i>0 and Hvect[Paren(i)]->dist > Hvect[i]->dist) {
+			if ( Hvect[Paren(i)]->dist > Hvect[i]->dist){
+				it=vert2ind.find(Hvect[i]);
+				it->second=Paren(i);
+				it=vert2ind.find(Hvect[Paren(i)]);
+				it->second=i;
+				swap(Hvect[Paren(i)],Hvect[i]);
+				i=Paren(i);
+			}
+		}
+	}
+	void siftDown(int i){
+		int minInd=i;
+		int l=LC(i);
+		//*****Left Child*****************
+		if(l<this->size and Hvect[l]->dist<Hvect[minInd]->dist){
+			minInd=l;
+		}
+		//******Right Child*****************
+		int r=RC(i);
+		if(r<this->size and Hvect[r]<Hvect[minInd]){
+			minInd=r;
+		}
+		
+		//******End Right Child*************
+		auto it=vert2ind.begin();
+		if (i!=minInd){
+			it=vert2ind.find(Hvect[i]);
+			it->second=minInd;
+			it=vert2ind.find(Hvect[minInd]);
+			it->second=i;
+
+			swap(Hvect[i],Hvect[minInd]);
+			siftDown(minInd);
+		}
+	}
+	public:
+    PriorityQueue(){this->size=0;}
+    PriorityQueue(int max){
+        this->max_size=max;
+		this->size=0;
+        this->Hvect.resize(max);
+		for (int i=0;i<max;i++){
+			Hvect[i]=NULL;
+		}
+    }
+	void setMaxSize(int n){
+		this->max_size=n;
+		this->size=0;
+		Hvect.resize(n);
+	}
+	int getSize(){
+		return this->size;
+	}
+
+    void insert(vertex* vtx){
+        if (this->size==this->max_size){
+            return;
+        }else{
+            this->Hvect[size]=vtx;
+			vert2ind[vtx]=size;	
+            this->siftUp(size);
+            this->size++;
+        }
+
+    }
+
+    vertex* extractMin(){
+		auto it=vert2ind.begin();
+		vertex* max=Hvect[0];
+		cout<<"Extracting: "<<max->id<<endl;
+		it=vert2ind.find(Hvect[size-1]);
+		it->second=0;
+        swap(Hvect[0],Hvect[size-1]);
+		it=vert2ind.find(max);
+		it->second=size-1;
+		
+        this-size--;
+        this->siftDown(0);
+        return max;
+    }
+
+	vertex* getMin(){
+		return Hvect[0];
+	}
+    
+    
+    void changePriority(int prior,vertex* vtx){
+		auto it=vert2ind.find(vtx);
+		int i=it->second;
+        int old_prior=Hvect[i]->dist;
+		if (old_prior==prior) return;
+        Hvect[i]->dist=prior;
+        if (prior>old_prior){
+            this->siftDown(i);
+        }else{
+            this->siftUp(i);
+        }
+    }
+	void showAll(){
+		for (int i=0;i<this->size;i++){
+			cout<<Hvect[i]->id<<" "<<Hvect[i]->dist<<endl;
+		}
+	}
 };
 
 class graph{
@@ -103,10 +237,33 @@ class graph{
 
 
 	void Dijkstra(vertex* vtx){
-
-		PriorityQueue dq;
+		PriorityQueue dq(this->n_vert);
 		vmap::iterator it=vertices.begin();
-		std::pair result;
+		for (it;it!=vertices.end();it++){
+			it->second->dist=this->inf;
+			it->second->prev=NULL;;
+		}
+		vtx->dist=0;
+		it=vertices.begin();
+		for (it;it!=vertices.end();it++){
+			dq.insert(it->second);
+		}
+		while(dq.getSize()!=0){
+			vertex* cur=dq.extractMin();
+			int newDist;
+			for (int i=0;i<cur->nAdj;i++){
+				int adjId=cur->adj[i];
+				int adjW=cur->weight[i];
+				auto adj_it=vertices.find(adjId);
+				if (adj_it->second->dist>cur->dist+adjW){
+					newDist=cur->dist+adjW;
+					adj_it->second->dist=newDist;
+					cout<<"Changing: "<<adj_it->first<<" "<<newDist<<endl;
+					adj_it->second->prev=cur;
+					dq.changePriority(newDist,adj_it->second);
+				}
+			}
+		}
 	}
 
     public:
@@ -246,7 +403,7 @@ class graph{
 				it2->second->reverse.push_back(x);
 				it2->second->nRev++;
 			}
-			this->inf=2147483647;
+			this->inf=1000000;
         }
 
 	
@@ -386,11 +543,23 @@ class graph{
         }
         cout<<endl;
     }
+	int getWeightedDist(int start, int end){
+		vmap::iterator it=vertices.find(start);
+		this->Dijkstra(it->second);
+		it=vertices.find(end);
+		if (it->second->dist==this->inf){
+			return -1;
+		}else{
+			return it->second->dist;
+		}
+	}
 };
 
 
 int main() {
     graph myGraph;
 	myGraph.readWeightedGraph();
-	myGraph.Dijkstra();
+	int a,b;
+	std::cin>>a>>b;
+	cout<<myGraph.getWeightedDist(a,b)<<endl;
 }
