@@ -77,7 +77,7 @@ class PriorityQueue{
 		}
 		//******Right Child*****************
 		int r=RC(i);
-		if(r<this->size and Hvect[r]<Hvect[minInd]){
+		if(r<this->size and Hvect[r]->dist<Hvect[minInd]->dist){
 			minInd=r;
 		}
 		
@@ -127,7 +127,6 @@ class PriorityQueue{
     vertex* extractMin(){
 		auto it=vert2ind.begin();
 		vertex* max=Hvect[0];
-		cout<<"Extracting: "<<max->id<<endl;
 		it=vert2ind.find(Hvect[size-1]);
 		it->second=0;
         swap(Hvect[0],Hvect[size-1]);
@@ -148,7 +147,7 @@ class PriorityQueue{
 		auto it=vert2ind.find(vtx);
 		int i=it->second;
         int old_prior=Hvect[i]->dist;
-		if (old_prior==prior) return;
+		//if (old_prior==prior) return;
         Hvect[i]->dist=prior;
         if (prior>old_prior){
             this->siftDown(i);
@@ -258,7 +257,6 @@ class graph{
 				if (adj_it->second->dist>cur->dist+adjW){
 					newDist=cur->dist+adjW;
 					adj_it->second->dist=newDist;
-					cout<<"Changing: "<<adj_it->first<<" "<<newDist<<endl;
 					adj_it->second->prev=cur;
 					dq.changePriority(newDist,adj_it->second);
 				}
