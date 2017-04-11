@@ -278,16 +278,15 @@ class graph{
 		if (vtx->nAdj==0) {return;}
 		int adjId=vtx->adj[0];
 		bool isLarger;
-		vertex* cur=vtx;
-	    for (int i=0;i<cur->nAdj;i++){
-	    	int adjId=cur->adj[i];
+	    for (int i=0;i<vtx->nAdj;i++){
+	    	int adjId=vtx->adj[i];
 	    	vmap::iterator adj_it=vertices.find(adjId);
 	    	vertex* adjV=adj_it->second;
-	    	int sub_dist=cur->dist+cur->weight[i];
+	    	int sub_dist=vtx->dist+vtx->weight[i];
 	    	isLarger=adjV->dist > sub_dist;
 	    	if (isLarger){
 	    		adjV->dist=sub_dist;
-                adjV->prev=cur;
+                adjV->prev=vtx;
                 Relax(adjV);
 	    	}
 	    }	
