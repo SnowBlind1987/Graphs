@@ -265,36 +265,32 @@ class graph{
 	}
 
 	void Relax(vertex* vtx){
+        static int callCount=0;
 		vmap::iterator it=vertices.begin();
-		for (it;it!=vertices.end();it++){
-			it->second->dist=this->inf;
-			it->second->prev=NULL;
-		}
-		vtx->dist=0;
+        if (callCount==0){
+		    for (it;it!=vertices.end();it++){
+		    	it->second->dist=this->inf;
+		    	it->second->prev=NULL;
+		    }
+		    vtx->dist=0;
+        }
+        callCount++;
 		it=vertices.begin();
 		if (vtx->nAdj==0) {return;}
 		int adjId=vtx->adj[0];
 		bool isLarger=true;		
 		vertex* cur=vtx;
-		vertex* next=NULL;
-		while (isLarger and cur->nAdj!=0){
-			int smallest_dist=this->inf;
-			for (int i=0;i<cur->nAdj;i++){
-				int adjId=cur->adj[i];
-				vmap::iterator adj_it=vertices.find(adjId);
-				vertex* adjV=adj_it->second;
-				int sub_dist=cur->dist+cur->weight[i];
-				isLarger=adjV->dist > sub_dist;
-				if (isLarger){
-					adjV->dist=sub_dist;
-					if (sub_dist<smallest_dist){
-						smallest_dist=sub_dist;
-						next=adjV;
-					}
-				}
-			}	
-			cur=next;
-		}
+	    for (int i=0;i<cur->nAdj;i++){
+	    	int adjId=cur->adj[i];
+	    	vmap::iterator adj_it=vertices.find(adjId);
+	    	vertex* adjV=adj_it->second;
+	    	int sub_dist=cur->dist+cur->weight[i];
+	    	isLarger=adjV->dist > sub_dist;
+	    	if (isLarger){
+	    		adjV->dist=sub_dist;
+                Relax(adjV);
+	    	}
+	    }	
 		
 	}
     public:
