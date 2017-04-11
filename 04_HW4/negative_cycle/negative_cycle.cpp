@@ -265,20 +265,19 @@ class graph{
 	}
 
 	void Relax(vertex* vtx){
-        static int callCount=0;
-		vmap::iterator it=vertices.begin();
-        if (callCount==0){
+        static bool isFirst=true;
+        if (isFirst){
+		    vmap::iterator it=vertices.begin();
 		    for (it;it!=vertices.end();it++){
 		    	it->second->dist=this->inf;
 		    	it->second->prev=NULL;
 		    }
 		    vtx->dist=0;
         }
-        callCount++;
-		it=vertices.begin();
+        isFirst=false;
 		if (vtx->nAdj==0) {return;}
 		int adjId=vtx->adj[0];
-		bool isLarger=true;		
+		bool isLarger;
 		vertex* cur=vtx;
 	    for (int i=0;i<cur->nAdj;i++){
 	    	int adjId=cur->adj[i];
@@ -288,6 +287,7 @@ class graph{
 	    	isLarger=adjV->dist > sub_dist;
 	    	if (isLarger){
 	    		adjV->dist=sub_dist;
+                adjV->prev=cur;
                 Relax(adjV);
 	    	}
 	    }	
