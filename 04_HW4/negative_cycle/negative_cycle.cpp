@@ -276,9 +276,9 @@ class graph{
 		int adjId=vtx->adj[0];
 		bool isLarger=true;		
 		vertex* cur=vtx;
-		int smallest_dist=this->inf;
 		vertex* next=NULL;
-		while (isLarger){
+		while (isLarger and cur->nAdj!=0){
+			int smallest_dist=this->inf;
 			for (int i=0;i<cur->nAdj;i++){
 				int adjId=cur->adj[i];
 				vmap::iterator adj_it=vertices.find(adjId);
