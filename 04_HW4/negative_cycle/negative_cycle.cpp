@@ -172,9 +172,11 @@ class graph{
         int n_vert;
 		int n_edges;
         int n_connected_comp; 
+        vector<vertex* > vertInscc;
 		bool isDirected;
 		int nccs; //number of connected components
 		int inf;
+        bool isFirst;
 
 		void explore(vertex* vtx,int conVal){
 			this->clock++;
@@ -264,9 +266,14 @@ class graph{
 		}
 	}
 
-	void Relax(vertex* vtx){
-        static bool isFirst=true;
-        if (isFirst){
+	 bool Relax(vertex* vtx){
+        vtx->isVisited=true;
+        cout<<"Current: "<<vtx->id<<endl;
+        static int call_count=0;
+        if (this->isFirst){
+            cout<<"Resetting: "<<vtx->id<<endl;
+            this->isFirst=false;
+            call_count=0;
 		    vmap::iterator it=vertices.begin();
 		    for (it;it!=vertices.end();it++){
 		    	it->second->dist=this->inf;
@@ -274,8 +281,8 @@ class graph{
 		    }
 		    vtx->dist=0;
         }
-        isFirst=false;
-		if (vtx->nAdj==0) {return;}
+        call_count++;
+        if (call_count==this->n_vert){return true;}
 		int adjId=vtx->adj[0];
 		bool isLarger;
 	    for (int i=0;i<vtx->nAdj;i++){
@@ -287,10 +294,12 @@ class graph{
 	    	if (isLarger){
 	    		adjV->dist=sub_dist;
                 adjV->prev=vtx;
-                Relax(adjV);
+                if (not adjV->isVisited){
+                    return Relax(adjV);
+                }
 	    	}
 	    }	
-		
+	    return false;	
 	}
     public:
 
@@ -300,6 +309,7 @@ class graph{
 			this->n_edges=0;
 			this->n_connected_comp=0;	
 			this->nccs=0;
+            this->isFirst=true;
 		}
 		//copy constructor
 		graph(const graph& copy){
@@ -512,6 +522,7 @@ class graph{
         int comp_n=1;
 		for (it;it!=post_order.rend();it++){
             if (not it->second->isInComp){
+                this->vertInscc.push_back(it->second);
 			    exploreSort(it->second,comp_n);
                 comp_n++;
             }
@@ -580,17 +591,18 @@ class graph{
 		}
 	}
 
-	int getWeightedDist_naive(int start, int end){
-		vmap::iterator it=vertices.find(start);
-		this->Relax(it->second);
-		it=vertices.find(end);
-		if (it->second->dist==this->inf){
-			return -1;
-		}else{
-			return it->second->dist;
-		}
-	}
-	
+	bool checkNegCycle(){
+        this->calcConnectedComponents();
+        this->resetVisited();
+        for (int i=0;i<this->nccs;i++){
+            bool result=this->Relax(vertInscc[i]);
+            this->isFirst=true;
+            if (result){
+                return true;
+            }
+        }
+        return false;
+    }    
 };
 
 
@@ -598,8 +610,5 @@ int main() {
     graph myGraph;
 	myGraph.readWeightedGraph();
 	int a,b;
-	std::cin>>a>>b;
-	cout<<myGraph.getWeightedDist(a,b)<<endl;
-	cout<<myGraph.getWeightedDist_naive(a,b)<<endl;
-
+    cout<<myGraph.checkNegCycle()<<endl;
 }
