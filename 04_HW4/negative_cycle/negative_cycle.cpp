@@ -265,10 +265,9 @@ class graph{
 		}
 	}
 
-	 bool Relax(vertex* vtx, int con_num){
+	 bool Relax(vertex* vtx, int con_num, bool isFirst){
         static int call_count=0;
-        if (this->isFirst){
-            this->isFirst=false;
+        if (isFirst){
             call_count=0;
 		    vmap::iterator it=vertices.begin();
 		    for (it;it!=vertices.end();it++){
@@ -292,7 +291,7 @@ class graph{
 	    		adjV->dist=sub_dist;
                 adjV->prev=vtx;
                 if (adjV->con==con_num){
-                    return Relax(adjV,con_num);
+                    return Relax(adjV,con_num,false);
                 }
 	    	}
 	    }	
@@ -307,7 +306,6 @@ class graph{
 			this->n_edges=0;
 			this->n_connected_comp=0;	
 			this->nccs=0;
-            this->isFirst=true;
 		}
 		//copy constructor
 		graph(const graph& copy){
@@ -592,8 +590,7 @@ class graph{
 	bool checkNegCycle(){
         this->calcConnectedComponents();
         for (int i=0;i<this->nccs;i++){
-            bool result=this->Relax(vertInscc[i],vertInscc[i]->con);
-            this->isFirst=true;
+            bool result=this->Relax(vertInscc[i],vertInscc[i]->con,true);
             if (result){
                 return true;
             }
