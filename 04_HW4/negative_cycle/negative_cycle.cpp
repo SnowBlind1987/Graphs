@@ -167,7 +167,6 @@ class graph{
         typedef map<int,vertex*> vmap;
 		vmap vertices;
 		vmap post_order;
-		map<int,int> connected_comp;
 		int clock;
         int n_vert;
 		int n_edges;
@@ -210,7 +209,7 @@ class graph{
 		void exploreSort(vertex* vtx, int con_number){
 			vtx->isVisited=true;
 			vtx->isInComp=true;
-			connected_comp[vtx->id]=con_number;
+			vtx->con=con_number;
 			for (int i=0;i<vtx->nAdj;i++){
 				auto adj_it=this->vertices.find(vtx->adj[i]);
 				if (not adj_it->second->isVisited){
@@ -266,12 +265,9 @@ class graph{
 		}
 	}
 
-	 bool Relax(vertex* vtx){
-        vtx->isVisited=true;
-        cout<<"Current: "<<vtx->id<<endl;
+	 bool Relax(vertex* vtx, int con_num){
         static int call_count=0;
         if (this->isFirst){
-            cout<<"Resetting: "<<vtx->id<<endl;
             this->isFirst=false;
             call_count=0;
 		    vmap::iterator it=vertices.begin();
@@ -281,9 +277,10 @@ class graph{
 		    }
 		    vtx->dist=0;
         }
-        call_count++;
+		
         if (call_count==this->n_vert){return true;}
-		int adjId=vtx->adj[0];
+        call_count++;
+
 		bool isLarger;
 	    for (int i=0;i<vtx->nAdj;i++){
 	    	int adjId=vtx->adj[i];
@@ -294,12 +291,13 @@ class graph{
 	    	if (isLarger){
 	    		adjV->dist=sub_dist;
                 adjV->prev=vtx;
-                if (not adjV->isVisited){
-                    return Relax(adjV);
+                if (adjV->con==con_num){
+                    return Relax(adjV,con_num);
                 }
 	    	}
 	    }	
-	    return false;	
+
+		return false;
 	}
     public:
 
@@ -446,7 +444,7 @@ class graph{
     void showAll(){
         vmap::iterator it=vertices.begin();
         for (it;it!=vertices.end();it++){
-            std::cout<<it->first<<" "<<it->second->pre<<" "<<it->second->post<<endl;
+            std::cout<<it->first<<" "<<it->second->con<<endl;
         }
     }
 
@@ -593,9 +591,8 @@ class graph{
 
 	bool checkNegCycle(){
         this->calcConnectedComponents();
-        this->resetVisited();
         for (int i=0;i<this->nccs;i++){
-            bool result=this->Relax(vertInscc[i]);
+            bool result=this->Relax(vertInscc[i],vertInscc[i]->con);
             this->isFirst=true;
             if (result){
                 return true;
