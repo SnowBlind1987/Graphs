@@ -175,7 +175,6 @@ class graph{
 		bool isDirected;
 		int nccs; //number of connected components
 		int inf;
-        bool isFirst;
 
 		void explore(vertex* vtx,int conVal){
 			this->clock++;
@@ -265,7 +264,7 @@ class graph{
 		}
 	}
 
-	 bool Relax(vertex* vtx, int con_num, bool isFirst){
+	 bool Relax(vertex* vtx, int con_num, bool isFirst=true){
         static int call_count=0;
         if (isFirst){
             call_count=0;
@@ -590,7 +589,7 @@ class graph{
 	bool checkNegCycle(){
         this->calcConnectedComponents();
         for (int i=0;i<this->nccs;i++){
-            bool result=this->Relax(vertInscc[i],vertInscc[i]->con,true);
+            bool result=this->Relax(vertInscc[i],vertInscc[i]->con);
             if (result){
                 return true;
             }
