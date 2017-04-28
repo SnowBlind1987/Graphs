@@ -265,6 +265,7 @@ class graph{
 	}
 
 	 bool Relax(vertex* vtx, int con_num, bool isFirst=true){
+		bool result=false;
         static int call_count=0;
         if (isFirst){
             call_count=0;
@@ -276,26 +277,26 @@ class graph{
 		    vtx->dist=0;
         }
 		
-        if (call_count==this->n_vert){return true;}
+        if (call_count==this->n_vert){result= true;}
         call_count++;
-
-		bool isLarger;
-	    for (int i=0;i<vtx->nAdj;i++){
-	    	int adjId=vtx->adj[i];
-	    	vmap::iterator adj_it=vertices.find(adjId);
-	    	vertex* adjV=adj_it->second;
-	    	int sub_dist=vtx->dist+vtx->weight[i];
-	    	isLarger=adjV->dist > sub_dist;
-	    	if (isLarger){
-	    		adjV->dist=sub_dist;
-                adjV->prev=vtx;
-                if (adjV->con==con_num){
-                    return Relax(adjV,con_num,false);
-                }
-	    	}
+		if (not result){
+			bool isLarger;
+	    	for (int i=0;i<vtx->nAdj;i++){
+	    		int adjId=vtx->adj[i];
+	    		vmap::iterator adj_it=vertices.find(adjId);
+	    		vertex* adjV=adj_it->second;
+	    		int sub_dist=vtx->dist+vtx->weight[i];
+	    		isLarger=adjV->dist > sub_dist;
+	    		if (isLarger){
+	    			adjV->dist=sub_dist;
+        	        adjV->prev=vtx;
+        	        if (adjV->con==con_num){
+        	            result=Relax(adjV,con_num,false);
+        	        }
+	    		}
+	    	}	
 	    }	
-
-		return false;
+		return result;
 	}
     public:
 
