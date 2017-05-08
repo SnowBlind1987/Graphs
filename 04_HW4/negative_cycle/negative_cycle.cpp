@@ -133,7 +133,7 @@ class PriorityQueue{
 		it=vert2ind.find(max);
 		it->second=size-1;
 		
-        this-size--;
+        this->size--;
         this->siftDown(0);
         return max;
     }
