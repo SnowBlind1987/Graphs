@@ -3,12 +3,20 @@
 #include <unordered_map>
 #include <queue>
 #include<math.h>
+#include <algorithm>
+#include <iomanip>
+
 using std::vector;
 using std::pair;
 using std::unordered_map;
 using std::cout;
 using std::endl;
 using std::queue;
+
+struct sort_data{
+	double eLength;
+	pair<int,int> eVert;
+};
 class tree{
 	private: 
 	tree* parent;
@@ -19,6 +27,8 @@ class tree{
 		this->id=vid;
 		this->rank=0;
 		this->parent=NULL;
+		this->x=0.;
+		this->y=0.;
 	}	
 	tree (int vid, double xx, double yy){
 		this->id=vid;
@@ -77,7 +87,6 @@ class disjointSet{
 
 			inPath.push(it->second);
 			return find(it->second->getParent()->getId());
-			//it->second->setParent(wrk);
 		}else{
 			while(not inPath.empty()){
 				wrk=inPath.front();
@@ -120,34 +129,51 @@ int nEdges(int m){
 	}
 	return sum;
 }
+
+bool compareEdges(const sort_data &a,const sort_data& b){
+	return a.eLength<b.eLength;
+}
 int main(){
 	disjointSet ds;
 	size_t n;
-	n=6;
-	//std::cin >> n;
+	std::cin >> n;
 	int nE=nEdges(n);
-	vector<double> eLength(nE);
-	vector<pair<int,int>> eVerts(nE);
-	vector<pair<double,double> > pos(n);
+	vector<std::pair<double,double> > pos(n);
 	vector<int>id(n);
-	int x,y;
-	/*
+	double x,y;
+	vector<sort_data> sortd(nE);
 	for (int i=1;i<=n;i++){
 		std::cin>>x>>y;
 		ds.insert(i,x,y);	
-		pos[i-i]=std::make_pair(x,y);
+		pos[i-1]=std::make_pair(x,y);
 		id[i-1]=i;
 	}	
-	*/
 	int iter=0;
 	for (int i=1;i<n;i++){
 		for (int j=i+1;j<=n;j++){
-			/*eVerts[iter]=std::make_pair(i,j);
-			eLength[iter]=sqrt((pos[i-1].first-pos[j-1].first)*(pos[i-1].first-pos[j-1].first)+
-						(pos[i-1].second*pos[i-1].second-pos[j-1].second+pos[j-1].second*pos[j-1].second));
-		*/
-		iter++;
+			double x1=pos[i-1].first;
+			double y1=pos[i-1].second;
+			double x2=pos[j-1].first;
+			double y2=pos[j-1].second;
+			sortd[iter].eVert=std::make_pair(i,j);
+			sortd[iter].eLength=sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+			iter++;
 		}
 	}
-	cout<<iter<<endl;
+	
+	std::sort(sortd.begin(),sortd.end(),compareEdges);
+	double dist=0.;
+	for (int i=1;i<=nE;i++){
+		int v1=sortd[i-1].eVert.first;
+		int v2=sortd[i-1].eVert.second;
+		if (ds.find(v1)!=ds.find(v2)){
+			ds.join(v1,v2);
+			dist+=sortd[i-1].eLength;
+			if (ds.getNsets()==1) {
+				break;
+			}
+		}		
+		
+	}
+	std::cout << std::setprecision(10) << dist << std::endl;
 }
