@@ -166,8 +166,10 @@ int main(){
 	for (int i=1;i<=nE;i++){
 		int v1=sortd[i-1].eVert.first;
 		int v2=sortd[i-1].eVert.second;
-		if (ds.find(v1)!=ds.find(v2)){
-			ds.join(v1,v2);
+		tree* t1=ds.find(v1);
+		tree* t2=ds.find(v2);
+		if (t1!=t2){
+			ds.join(t1->getId(),t2->getId());
 			dist+=sortd[i-1].eLength;
 			if (ds.getNsets()==1) {
 				break;
